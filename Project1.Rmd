@@ -3,15 +3,17 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-```{r}
-library(MASS)
-library(clValid)
-library(mixture)
+```{r imports}
+library(MASS);
+library(clValid);
+library(mixture);
+library(teigen);
 library(MixGHD);
+library(meanShiftR);
 ```
 
 
-```{r}
+```{r make single data set (likely delete this)}
 #Parameters to be messed with
 mu1 = c(0,0)
 mu2 = c(5,5)
@@ -30,29 +32,98 @@ labels = c(rep(1,100),rep(2,100))
 
 ```
 
+```{r function for making multiple data sets}
+make_data <-function(type='n',G=2,p=2,mean,var,skew){
+    m1 = c(0,0)
+    
+    #select mean
+    if (mean =='a') {
+        m2 = c(0,0)
+    } else if (mean=='b'){
+        m2 = c(1,1)
+    } else if (mean == 'c'){
+        m2 =c(2,2)
+    }
+    
+    #var
+    if (var =='a'){
+        s1 = diag(c(1,1))
+        s2 = diag(c(1,1))
+    } else if (var == 'b') {
+        s1 = matrix(c(1,.9,.9,1),2)
+        s2 = matrix(c(1,.9,.9,1),2)
+    } else if (var == 'c') {
+        s1 = matrix(c(1,-.9,-.9,1),2)
+        s2 = matrix(c(1,-.9,-.9,1),2)
+    } else if (var == 'd') {
+        s1 = matrix(c(1,.9,.9,1),2)
+        s2 = matrix(c(1,-.9,-.9,1),2)
+    }
+    
+    if (type == 'n' | type == 'N') {
+        data1 = mvrnorm(n = 100,mu=m1, Sigma = s1)
+        data2 = mvrnorm(n = 100,mu=m2, Sigma = s2)
+        data_full = rbind(data1,data2)
+        labels = c(rep(1,100),rep(2,100))
+        stuff = cbind(data_full,labels)
+        
+    }    
+    
+    return(stuff)
+}
 
-```{r}
+
+stuff = make_data(mean = 'a', var = 'd')
+data_full = stuff[,-3]
+labels = stuff[,3]
+data1 = data_full[labels==1,]
+data2 = data_full[labels==2,]
+
+plot(data1, col = 'blue',xlim = c(-5,10),ylim = c(-5,10))
+points(data2, col = 'red')
+
+```
+
+
+```{r fit models}
 
 #fit models
 #K-means
-model1 = kmeans(data_full, nstart = 50, centers = 2)
+modelk = kmeans(data_full, nstart = 50, centers = 2)
+modelk_labels <- modelk$cluster
 
-table(model1$cluster,labels)
-ARI(model1$cluster,labels)
-plot(data_full, col = model1$cluster)
-dunn(clusters = model1$cluster, Data = data_full)
+table(modelk_labels,labels)
+ARI(modelk_labels,labels)
+plot(data_full, col = modelk_labels)
+dunn(clusters = modelk_labels, Data = data_full)
+
+#PAM
+modelp = pam(data_full,2,metric = 'euclidean')
+modelp_labels = modelp$clustering
+
+
 
 #GMM
-model2 = gpcm(data_full, G=2,mnames = NULL)
-table(model2$map,labels)
-ARI(model2$map,labels)
+modelgmm = gpcm(data_full, G=2,mnames = NULL)
+modelgmm_labels <- modelgmm$map
+
+table(modelgmm_labels,labels)
+ARI(modelgmm_labels,labels)
 model2$bicModel$bic
-plot(data_full, col = model2$map)
-dunn(clusters = model2$map, Data = data_full)
+plot(data_full, col = modelgmm_labels)
+dunn(clusters = modelgmm_labels, Data = data_full)
 
 #t-mix
+modelt <- teigen(x=data_full,Gs=2,models="UUUU") 
+modelt_labels <- modelt$classification
 
 
+#Mean-shift
+
+
+#Ward-linkage
+methodw <- agnes(data_full)
+modelw_labels <- cutree(methodw,2)
 
     
 ```
