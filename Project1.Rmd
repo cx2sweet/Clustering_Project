@@ -34,7 +34,8 @@ labels = c(rep(1,100),rep(2,100))
 ```
 
 ```{r function for making multiple data sets}
-make_data <-function(type='n',G=2,p=2,mean,var,skew){
+make_data <-function(type='n', G=2, p=2, mean, var, skew){
+    
     m1 = c(0,0)
     
     #select mean
@@ -74,7 +75,7 @@ make_data <-function(type='n',G=2,p=2,mean,var,skew){
 }
 
 
-stuff = make_data(mean = 'a', var = 'd')
+stuff = make_data(mean = 'b', var = 'd')
 data_full = stuff[,-3]
 labels = stuff[,3]
 data1 = data_full[labels==1,]

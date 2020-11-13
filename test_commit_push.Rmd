@@ -7,7 +7,7 @@ output: html_notebook
 
 ```{r}
 print('Does this work? Cory PC 11/12')
-
+print('ok now im on my laptop')
 
 ```
 
