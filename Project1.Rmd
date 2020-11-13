@@ -40,12 +40,13 @@ make_data <-function(type='n', G=2, p=2, mean, var, skew){
     
     #select mean
     if (mean =='a') {
-        m2 = c(0,0)
+        m2 = c(2.5,2.5)
     } else if (mean=='b'){
         m2 = c(1,1)
     } else if (mean == 'c'){
-        m2 =c(2,2)
+        m2 =c(.5,0)
     }
+    
     
     #var
     if (var =='a'){
@@ -55,12 +56,18 @@ make_data <-function(type='n', G=2, p=2, mean, var, skew){
         s1 = matrix(c(1,.9,.9,1),2)
         s2 = matrix(c(1,.9,.9,1),2)
     } else if (var == 'c') {
-        s1 = matrix(c(1,-.9,-.9,1),2)
-        s2 = matrix(c(1,-.9,-.9,1),2)
+        s1 = matrix(c(1,.5,.5,1),2)
+        s2 = matrix(c(1,.9,.9,1),2)
     } else if (var == 'd') {
         s1 = matrix(c(1,.9,.9,1),2)
         s2 = matrix(c(1,-.9,-.9,1),2)
-    }
+    } else if (var == 'e') {
+        s1 = matrix(c(1,.2,.2,1),2)
+        s2 = matrix(c(1,-.2,-.2,1),2)
+    } else if (var == 'f') {
+        s1 = matrix(c(1,.5,.5,4),2)
+        s2 = matrix(c(1,-.5,-.5,1),2)
+    } 
     
     if (type == 'n' | type == 'N') {
         data1 = mvrnorm(n = 100,mu=m1, Sigma = s1)
@@ -75,7 +82,7 @@ make_data <-function(type='n', G=2, p=2, mean, var, skew){
 }
 
 
-stuff = make_data(mean = 'b', var = 'd')
+stuff = make_data(mean = 'a', var = 'f')
 data_full = stuff[,-3]
 labels = stuff[,3]
 data1 = data_full[labels==1,]
