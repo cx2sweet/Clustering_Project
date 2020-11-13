@@ -7,7 +7,11 @@ output: html_notebook
 
 ```{r}
 print('Does this work? Cory PC 11/12')
+<<<<<<< HEAD
 print('ok now im on my laptop')
+=======
+print('Yes, it does. Blake 11/12')
+>>>>>>> 2374dadac8fd2cfa417008c6738d16aa90a735be
 
 ```
 
