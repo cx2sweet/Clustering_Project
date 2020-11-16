@@ -8,6 +8,7 @@ library(MASS)
 library(clValid)
 library(mixture)
 library(MixGHD);
+library(teigen)
 ```
 
 
@@ -64,5 +65,70 @@ dunn(clusters = model1$cluster, Data = data_full)
 #stability() maybe for 3 or more dimensions
 
 ```
+
+```{r}
+mu<- c(c(1,2),c(2,3))
+s1<-c(1,2,3)
+s2<-c(1,2)
+skew<- c(1,2)
+
+for(i in 1:length(mu)){
+  for(j in 1:length(s1)){
+    for(k in 1:length(s2)){
+      for(l in 1:length(skew)){
+        
+        print(c(mu[i],s1[j],s2[k],skew[l]))
+        # #*#makes data
+        # data1 = mvrnorm(n = 100,mu=mu1, Sigma = S1)
+        # data2 = mvrnorm(n = 100,mu=mu[i], Sigma = S2)
+        # #creating labels
+        # data_full = rbind(data1,data2)
+        # labels = c(rep(1,100),rep(2,100))
+        # #fit models
+        # #K-means
+        # model1 = kmeans(data_full, nstart = 50, centers = 2)
+        # 
+        # table(model1$cluster,labels)
+        # ARI(model1$cluster,labels)
+        # #plot(data_full, col = model1$cluster)
+        # dunn(clusters = model1$cluster, Data = data_full)
+        # 
+        # #GMM
+        # model2 = gpcm(data_full, G=2,mnames = NULL)
+        # table(model2$map,labels)
+        # ARI(model2$map,labels)
+        # model2$bicModel$bic
+        # #plot(data_full, col = model2$map)
+        # dunn(clusters = model2$map, Data = data_full)
+        # 
+        # #tmix  fits mixtures of multivariate-t distributions to the data
+        # tmix <- teigen(x=data_full,Gs=1:5,models="UUUU")
+        # class.tmix <- tmix$classification 
+        # table(class.predict.t,labels)
+        # ARI(class.predict.t,labels)
+        # dunn(clusters = class.tmix, Data = data_full)
+        # #mean shift
+        # meanShift(data_full, trainData = data_full, nNeighbors = NROW(data_full), algorithm = "LINEAR", kernelType = "NORMAL", bandwidth = rep(1, NCOL(data_full)), alpha = 0, iterations = 10, epsilon = 1e-08, epsilonCluster = 1e-04, parameters = NULL)
+        # 
+        # #
+        
+      }
+    }
+    
+  }
+}
+
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
