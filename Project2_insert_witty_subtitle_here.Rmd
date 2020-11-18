@@ -4,12 +4,13 @@ output: html_notebook
 ---
 
 ```{r}
-library(MASS)
-library(clValid)
-library(mixture)
+library(MASS);
+library(clValid);
+library(mixture);
 library(MixGHD);
-library(teigen)
-library(mixsmsn)
+library(teigen);
+library(mixsmsn);
+library(meanShiftR);
 ```
 
 
@@ -83,9 +84,10 @@ ss<- list( diag(c(1,1)), diag(c(2,2))  )
 skew<- list(c(0,0),c(1,1))  
 
 
-results<-matrix(0,nrow = 675, ncol = 9) #setting, ARI1, Dunn1
+results<-matrix(0,nrow = 675, ncol = 13) #setting, ARI1, Dunn1
 colnames(results)<-c('setting','ARI 1','Dunn 1',
-                     'ARI2','Dunn2','BIC2','ARI3','Dunn3','BIC3')
+                     'ARI2','Dunn2','BIC2','ARI3','Dunn3','BIC3',
+                     'ARI4', 'nARI4', 'Dunn4', 'nDunn4')
 
 i=0
 for(mu2 in mu){
@@ -135,6 +137,28 @@ for(mu2 in mu){
               results[i,8] <- dunn(clusters = class.tmix, Data = data)
               results[i,9] <- tmix$bic
               
+              #meanshift
+              #ARI, nARI, Dunn, nDunn
+              ls<-c()
+              lsd<-c()
+              for (j in 2:10){
+                model <- meanShift(data, trainData = data, nNeighbors = j,iterations=25)
+                ls<-c(ls,ARI(labels, model$assignment))
+                ddd <- dunn(clusters = model$assignment,Data=data)
+                if (ddd != Inf){
+                  lsd<-c(lsd,dunn(clusters = model$assignment,Data=data))
+                } else {lsd<-c(lsd,0)}
+                #print( dunn(clusters = model$assignment,Data=data) )
+                #lsd<-c(lsd,dunn(clusters = model$assignment,Data=data))
+              }
+              results[i,10]<-max(ls)
+              results[i,11]<-which.max(ls)
+              results[i,12]<-max(lsd)
+              results[i,13]<-which.max(lsd)
+              #print(max(ls))
+              #print(which.max(ls))
+              
+              
               
         # #mean shift
         # meanShift(data_full, trainData = data_full, nNeighbors = NROW(data_full), algorithm = "LINEAR", kernelType = "NORMAL", bandwidth = rep(1, NCOL(data_full)), alpha = 0, iterations = 10, epsilon = 1e-08, epsilonCluster = 1e-04, parameters = NULL)
@@ -150,8 +174,42 @@ for(mu2 in mu){
 ```
 
 
+```{r}
+#testing meanshift
+#params
+mu1 = c(0,0)
+mu2<- c(4.5,2.5)
+s1<- diag(c(1,1))
+s2 = diag(c(2,2))  
+skew1 = c(0,0)
+skew2 = c(0,0)
+#make data
+arg1=list(mu=mu1,Sigma=s1,shape=skew1)
+arg2=list(mu=mu2,Sigma=s2,shape=skew2)
+args=list(arg1,arg2)
+stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args, cluster = TRUE)
+data<-stuff$y
+labels <- stuff$cluster
+plot(data, col = labels)
 
 
+ls<-c()
+for (i in 1:10){
+  model <- meanShift(data, trainData = data, nNeighbors = i,iterations=25)
+  #print(ARI(labels, model$assignment))
+  ls<-c(ls,ARI(labels, model$assignment))
+}
+
+print(max(ls))
+print(which.max(ls))
+
+model <- meanShift(data, trainData = data,  nNeighbors = 3, iterations=25)
+ARI(labels, model$assignment)
+
+plot(data, col = model$assignment)
+
+table(model$assignment,labels)
+```
 
 
 
