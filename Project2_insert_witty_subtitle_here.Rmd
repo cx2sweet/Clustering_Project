@@ -15,61 +15,6 @@ library(meanShiftR);
 
 
 ```{r}
-#Parameters to be messed with
-mu1 = c(0,0)
-mu2 = c(5,5)
-S1 = diag(c(1,1))
-S2 = diag(1,2)
-#generates data
-data1 = mvrnorm(n = 100,mu=mu1, Sigma = S1)
-data2 = mvrnorm(n = 100,mu=mu2, Sigma = S2)
-
-#plots data
-plot(data1, col = 'blue',xlim = c(-5,10),ylim = c(-5,10))
-points(data2, col = 'red')
-
-data_full = rbind(data1,data2)
-labels = c(rep(1,100),rep(2,100))
-
-```
-
-```{r}
-
-#fit models
-#K-means
-model1 = kmeans(data_full, nstart = 50, centers = 2)
-
-table(model1$cluster,labels)
-ARI(model1$cluster,labels)
-plot(data_full, col = model1$cluster)
-dunn(clusters = model1$cluster, Data = data_full)
-
-#GMM
-model2 = gpcm(data_full, G=2,mnames = NULL)
-table(model2$map,labels)
-ARI(model2$map,labels)
-model2$bicModel$bic
-plot(data_full, col = model2$map)
-dunn(clusters = model2$map, Data = data_full)
-
-#t-mix
-```
-
-```{r}
-#DUNNNNDUNNDUNDUN
-dunn(clusters = model1$cluster, Data = data_full)
-
-#stability() maybe for 3 or more dimensions
-
-```
-
-```{r}
-for (i in mu){
-    print(i)
-}
-```
-
-```{r}
 mu1 <- c(0,0)
 mu<- list(c(2.5,2.5),c(1,1),c(.5,0))
 ss<- list(diag(c(1,1)),matrix(c(1,.75,.75,1),2),matrix(c(1,-.75,-.75,1),2),
@@ -170,46 +115,11 @@ for(mu2 in mu){
   }
 }
 
+write.csv(results,'results_df.csv', row.names = FALSE)
 
 ```
 
 
-```{r}
-#testing meanshift
-#params
-mu1 = c(0,0)
-mu2<- c(4.5,2.5)
-s1<- diag(c(1,1))
-s2 = diag(c(2,2))  
-skew1 = c(0,0)
-skew2 = c(0,0)
-#make data
-arg1=list(mu=mu1,Sigma=s1,shape=skew1)
-arg2=list(mu=mu2,Sigma=s2,shape=skew2)
-args=list(arg1,arg2)
-stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args, cluster = TRUE)
-data<-stuff$y
-labels <- stuff$cluster
-plot(data, col = labels)
-
-
-ls<-c()
-for (i in 1:10){
-  model <- meanShift(data, trainData = data, nNeighbors = i,iterations=25)
-  #print(ARI(labels, model$assignment))
-  ls<-c(ls,ARI(labels, model$assignment))
-}
-
-print(max(ls))
-print(which.max(ls))
-
-model <- meanShift(data, trainData = data,  nNeighbors = 3, iterations=25)
-ARI(labels, model$assignment)
-
-plot(data, col = model$assignment)
-
-table(model$assignment,labels)
-```
 
 
 
