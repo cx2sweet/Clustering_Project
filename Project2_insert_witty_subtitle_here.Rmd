@@ -15,20 +15,19 @@ library(meanShiftR);
 
 
 ```{r}
+#parameters
 mu1 <- c(0,0)
 mu<- list(c(2.5,2.5),c(1,1),c(.5,0))
 ss<- list(diag(c(1,1)),matrix(c(1,.75,.75,1),2),matrix(c(1,-.75,-.75,1),2),
           matrix(c(4,4.5,4.5,9),2),matrix(c(4,-4.5,-4.5,9),2) )
 skew<- list(c(0,0),c(1,-1),c(1,1))  
 
-
 #fewer models just for now. Remove later
-mu<- list(c(2.5,2.5),c(1,1))
+#mu<- list(c(2.5,2.5),c(1,1))
+#ss<- list( diag(c(1,1)), diag(c(2,2))  )
+#skew<- list(c(0,0),c(1,1))  
 
-ss<- list( diag(c(1,1)), diag(c(2,2))  )
-skew<- list(c(0,0),c(1,1))  
-
-
+#results matrix
 results<-matrix(0,nrow = 675, ncol = 13) #setting, ARI1, Dunn1
 colnames(results)<-c('setting','ARI 1','Dunn 1',
                      'ARI2','Dunn2','BIC2','ARI3','Dunn3','BIC3',
