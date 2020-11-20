@@ -102,12 +102,6 @@ for(mu2 in mu){
               #print(max(ls))
               #print(which.max(ls))
               
-              
-              
-        # #mean shift
-        # meanShift(data_full, trainData = data_full, nNeighbors = NROW(data_full), algorithm = "LINEAR", kernelType = "NORMAL", bandwidth = rep(1, NCOL(data_full)), alpha = 0, iterations = 10, epsilon = 1e-08, epsilonCluster = 1e-04, parameters = NULL)
-        # 
-        # #
         }
       }
     }
@@ -117,7 +111,6 @@ for(mu2 in mu){
 write.csv(results,'results_df.csv', row.names = FALSE)
 
 ```
-
 
 
 
