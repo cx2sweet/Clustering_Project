@@ -28,10 +28,11 @@ skew<- list(c(0,0),c(1,-1),c(1,1))
 #skew<- list(c(0,0),c(1,1))  
 
 #results matrix
-results<-matrix(0,nrow = 675, ncol = 13) #setting, ARI1, Dunn1
+results<-matrix(0,nrow = 675, ncol = 17) #setting, ARI1, Dunn1
 colnames(results)<-c('setting','ARI 1','Dunn 1',
                      'ARI2','Dunn2','BIC2','ARI3','Dunn3','BIC3',
-                     'ARI4', 'nARI4', 'Dunn4', 'nDunn4')
+                     'ARI4', 'nARI4', 'Dunn4', 
+                     'nDunn4','ARI5','Dunn5','ARI6','Dunn6')
 
 i=0
 for(mu2 in mu){
@@ -80,7 +81,7 @@ for(mu2 in mu){
               results[i,7] <- ARI(class.tmix,labels)
               results[i,8] <- dunn(clusters = class.tmix, Data = data)
               results[i,9] <- tmix$bic
-              
+
               #meanshift
               #ARI, nARI, Dunn, nDunn
               ls<-c()
@@ -101,6 +102,20 @@ for(mu2 in mu){
               results[i,13]<-which.max(lsd)
               #print(max(ls))
               #print(which.max(ls))
+              
+              #Ward
+              #ARI
+              #Dunn
+              modelw<-cutree(agnes(data,method = 'ward'),2)
+              results[i,14] <- ARI(modelw,labels)
+              results[i,15] <- dunn(clusters = modelw, Data = data)              
+              
+              #PAM
+              #ARI Dunn
+              modelp <- pam(data,k=2)
+              results[i,16] <- ARI(modelp$clustering,labels)
+              results[i,17] <- dunn(clusters = modelp$clustering, Data = data)               
+
               
         }
       }
