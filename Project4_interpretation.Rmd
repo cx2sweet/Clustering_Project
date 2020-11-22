@@ -1,0 +1,10 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+params<-read.csv('parameter_matrix.csv')
+results<-read.csv('results_df.csv')
+
+```
