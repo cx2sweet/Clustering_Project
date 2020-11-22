@@ -4,127 +4,218 @@ output: html_notebook
 ---
 
 ```{r}
-library(MASS)
-library(clValid)
-library(mixture)
+library(MASS);
+library(clValid);
+library(mixture);
 library(MixGHD);
-library(teigen)
+library(teigen);
+library(mixsmsn);
+library(meanShiftR);
 ```
 
 
 ```{r}
-#Parameters to be messed with
-mu1 = c(0,0)
-mu2 = c(5,5)
-S1 = diag(c(1,1))
-S2 = diag(1,2)
-#generates data
-data1 = mvrnorm(n = 100,mu=mu1, Sigma = S1)
-data2 = mvrnorm(n = 100,mu=mu2, Sigma = S2)
+#parameters
+mu1 <- c(0,0)
+mu<- list(c(2.5,2.5),c(1,1),c(.5,0))
+ss<- list(diag(c(1,1)),matrix(c(1,.75,.75,1),2),matrix(c(1,-.75,-.75,1),2),
+          matrix(c(4,4.5,4.5,9),2),matrix(c(4,-4.5,-4.5,9),2) )
+skew<- list(c(0,0),c(1,-1),c(1,1))  
 
-#plots data
-plot(data1, col = 'blue',xlim = c(-5,10),ylim = c(-5,10))
-points(data2, col = 'red')
+#fewer models just for now. Remove later
+#mu<- list(c(2.5,2.5),c(1,1))
+#ss<- list( diag(c(1,1)), diag(c(2,2))  )
+#skew<- list(c(0,0),c(1,1))  
 
-data_full = rbind(data1,data2)
-labels = c(rep(1,100),rep(2,100))
+#results matrix
+results<-matrix(0,nrow = 675, ncol = 13) #setting, ARI1, Dunn1
+colnames(results)<-c('setting','ARI 1','Dunn 1',
+                     'ARI2','Dunn2','BIC2','ARI3','Dunn3','BIC3',
+                     'ARI4', 'nARI4', 'Dunn4', 'nDunn4')
 
-```
-
-
-```{r}
-
-#fit models
-#K-means
-model1 = kmeans(data_full, nstart = 50, centers = 2)
-
-table(model1$cluster,labels)
-ARI(model1$cluster,labels)
-plot(data_full, col = model1$cluster)
-dunn(clusters = model1$cluster, Data = data_full)
-
-#GMM
-model2 = gpcm(data_full, G=2,mnames = NULL)
-table(model2$map,labels)
-ARI(model2$map,labels)
-model2$bicModel$bic
-plot(data_full, col = model2$map)
-dunn(clusters = model2$map, Data = data_full)
-
-#t-mix
-
-
-
-    
-```
-
-```{r}
-#DUNNNNDUNNDUNDUN
-dunn(clusters = model1$cluster, Data = data_full)
-
-#stability() maybe for 3 or more dimensions
-
-```
-
-```{r}
-mu<- c(c(1,2),c(2,3))
-s1<-c(1,2,3)
-s2<-c(1,2)
-skew<- c(1,2)
-
-for(i in 1:length(mu)){
-  for(j in 1:length(s1)){
-    for(k in 1:length(s2)){
-      for(l in 1:length(skew)){
-        
-        print(c(mu[i],s1[j],s2[k],skew[l]))
-        # #*#makes data
-        # data1 = mvrnorm(n = 100,mu=mu1, Sigma = S1)
-        # data2 = mvrnorm(n = 100,mu=mu[i], Sigma = S2)
-        # #creating labels
-        # data_full = rbind(data1,data2)
-        # labels = c(rep(1,100),rep(2,100))
-        # #fit models
-        # #K-means
-        # model1 = kmeans(data_full, nstart = 50, centers = 2)
-        # 
-        # table(model1$cluster,labels)
-        # ARI(model1$cluster,labels)
-        # #plot(data_full, col = model1$cluster)
-        # dunn(clusters = model1$cluster, Data = data_full)
-        # 
-        # #GMM
-        # model2 = gpcm(data_full, G=2,mnames = NULL)
-        # table(model2$map,labels)
-        # ARI(model2$map,labels)
-        # model2$bicModel$bic
-        # #plot(data_full, col = model2$map)
-        # dunn(clusters = model2$map, Data = data_full)
-        # 
-        # #tmix  fits mixtures of multivariate-t distributions to the data
-        # tmix <- teigen(x=data_full,Gs=1:5,models="UUUU")
-        # class.tmix <- tmix$classification 
-        # table(class.predict.t,labels)
-        # ARI(class.predict.t,labels)
-        # dunn(clusters = class.tmix, Data = data_full)
-        # #mean shift
-        # meanShift(data_full, trainData = data_full, nNeighbors = NROW(data_full), algorithm = "LINEAR", kernelType = "NORMAL", bandwidth = rep(1, NCOL(data_full)), alpha = 0, iterations = 10, epsilon = 1e-08, epsilonCluster = 1e-04, parameters = NULL)
-        # 
-        # #
-        
+i=0
+for(mu2 in mu){
+  for(s1 in ss){
+    for(s2 in ss){
+      for(skew1 in skew){
+          for (skew2 in skew){
+              
+              ############
+              #Makes data#
+              ############
+              
+              arg1=list(mu=mu1,Sigma=s1,shape=skew1)
+              arg2=list(mu=mu2,Sigma=s2,shape=skew2)
+              args=list(arg1,arg2)
+              stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args,
+                         cluster = TRUE)
+              data<-stuff$y
+              labels <- stuff$cluster
+              #plot(data,col = labels)
+              i=i+1
+              if (i%%25==0){print(i)}
+              results[i,1] <- i 
+              
+              ########
+              #Models#
+              ########
+              
+              #K-Means (1)
+              #ARI, Dunn
+              model1 = kmeans(data, nstart = 25, centers = 2)
+              results[i,2] <- ARI(model1$cluster,labels)
+              results[i,3]<-dunn(clusters = model1$cluster, Data = data)
+              
+              #GMM (2)
+              #ARI, Dunn, BIC
+              model2 = gpcm(data, G=2,mnames = NULL)
+              results[i,4] <- ARI(model2$map,labels)
+              results[i,5] <- dunn(clusters = model2$map, Data = data)
+              results[i,6] <- model2$bicModel$bic
+              
+              #t-mix (3)
+              #ARI, Dunn, BIC
+              tmix <- teigen(x=data,Gs=2,models="UUUU");
+              class.tmix <- tmix$classification 
+              results[i,7] <- ARI(class.tmix,labels)
+              results[i,8] <- dunn(clusters = class.tmix, Data = data)
+              results[i,9] <- tmix$bic
+              
+              #meanshift
+              #ARI, nARI, Dunn, nDunn
+              ls<-c()
+              lsd<-c()
+              for (j in 2:10){
+                model <- meanShift(data, trainData = data, nNeighbors = j,iterations=25)
+                ls<-c(ls,ARI(labels, model$assignment))
+                ddd <- dunn(clusters = model$assignment,Data=data)
+                if (ddd != Inf){
+                  lsd<-c(lsd,dunn(clusters = model$assignment,Data=data))
+                } else {lsd<-c(lsd,0)}
+                #print( dunn(clusters = model$assignment,Data=data) )
+                #lsd<-c(lsd,dunn(clusters = model$assignment,Data=data))
+              }
+              results[i,10]<-max(ls)
+              results[i,11]<-which.max(ls)
+              results[i,12]<-max(lsd)
+              results[i,13]<-which.max(lsd)
+              #print(max(ls))
+              #print(which.max(ls))
+              
+        }
       }
     }
-    
   }
 }
 
+write.csv(results,'results_df.csv', row.names = FALSE)
 
+```
+
+
+```{r}
+answers <- read.csv("results_df.csv")
+answers
+```
+
+```{r}
+sapply(answers,max)
+apply(answers[,c(2,4,7,10)],1,max)
+which(answers$ARI.1 == 1)
+which(answers$ARI2 == 1)
+ari.astark <-answers[,c(2,4,7,10)]
+heatmap(as.matrix(ari.astark),Rowv = NA,Colv = NA)
+Dunn.cecap<- answers[,c(3,5,8,12)]
+heatmap(as.matrix(Dunn.cecap),Rowv = NA,Colv = NA)
 ```
 
 
 
 
+```{r}
+#parameters
+mu1 <- c(0,0)
+mu<- list(c(2.5,2.5),c(1,1),c(.5,0))
+ss<- list(diag(c(1,1)),matrix(c(1,.75,.75,1),2),matrix(c(1,-.75,-.75,1),2),
+          matrix(c(4,4.5,4.5,9),2),matrix(c(4,-4.5,-4.5,9),2) )
+skew<- list(c(0,0),c(1,-1),c(1,1))  
 
+#fewer models just for now. Remove later
+#mu<- list(c(2.5,2.5),c(1,1))
+#ss<- list( diag(c(1,1)), diag(c(2,2))  )
+#skew<- list(c(0,0),c(1,1))  
+
+#results matrix
+results<-matrix(0,nrow = 675, ncol = 13) #setting, ARI1, Dunn1
+colnames(results)<-c('setting','ARI 1','Dunn 1',
+                     'ARI2','Dunn2','BIC2','ARI3','Dunn3','BIC3',
+                     'ARI4', 'nARI4', 'Dunn4', 'nDunn4')
+
+i=0
+k=1
+for(mu2 in mu){
+  for(s1 in ss){
+    for(s2 in ss){
+      for(skew1 in skew){
+          for (skew2 in skew){
+              
+              ############
+              #Makes data#
+              ############
+            
+            if(k==12){
+              arg1=list(mu=mu1,Sigma=s1,shape=skew1)
+              arg2=list(mu=mu2,Sigma=s2,shape=skew2)
+              args=list(arg1,arg2)
+              stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args,
+                         cluster = TRUE)
+              data<-stuff$y
+              labels <- stuff$cluster
+              model1 = kmeans(data, nstart = 25, centers = 2)
+              s.vals <- silhouette(x=model1$cluster,dist=dist(data)) 
+              plot(s.vals,main="Silhouette Plot of Two Groups Solution",col="blue") 
+              plot(data, col = model1$cluster)
+              
+            }
+            if(k==96){
+              arg1=list(mu=mu1,Sigma=s1,shape=skew1)
+              arg2=list(mu=mu2,Sigma=s2,shape=skew2)
+              args=list(arg1,arg2)
+              stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args,
+                         cluster = TRUE)
+              data<-stuff$y
+              labels <- stuff$cluster
+              model1 = kmeans(data, nstart = 25, centers = 2)
+              s.vals <- silhouette(x=model1$cluster,dist=dist(data)) 
+              plot(s.vals,main="Silhouette Plot of Two Groups Solution",col="blue") 
+              plot(data, col = model1$cluster)
+              model2 = gpcm(data, G=2,mnames = NULL)
+              plot(data,col =  model2$map)
+              
+            }
+            
+            if(k==60){
+              arg1=list(mu=mu1,Sigma=s1,shape=skew1)
+              arg2=list(mu=mu2,Sigma=s2,shape=skew2)
+              args=list(arg1,arg2)
+              stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args,
+                         cluster = TRUE)
+              data<-stuff$y
+              labels <- stuff$cluster
+              model2 = gpcm(data, G=2,mnames = NULL)
+              plot(data,col =  model2$map)
+              
+              
+            }
+            k=k+1
+              
+        }
+      }
+    }
+  }
+}
+
+```
 
 
 
