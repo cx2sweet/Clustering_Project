@@ -24,7 +24,7 @@ skew<- list(c(0,0),c(1,-1),c(1,1))
 
 #results matrix
 param_mat<-matrix(0,nrow = 675, ncol = 17) 
-colnames(results)<-c('G1_mu_x1','G1_mu_x2','G2_mu_x1','G2_mu2_x2','dist_between_means','G1_var_x1','G1_var_x2','G1_covar','G1_corr','G2_var_x1','G2_var_x2','G2_covar','G2_corr','G1_skew_x1','G1_skew_x2','G2_skew_x1','G2_skew_x2')
+colnames(param_mat)<-c('G1_mu_x1','G1_mu_x2','G2_mu_x1','G2_mu2_x2','dist_between_means','G1_var_x1','G1_var_x2','G1_covar','G1_corr','G2_var_x1','G2_var_x2','G2_covar','G2_corr','G1_skew_x1','G1_skew_x2','G2_skew_x1','G2_skew_x2')
 
 i=0
 for(mu2 in mu){
@@ -35,7 +35,7 @@ for(mu2 in mu){
             i=i+1
             param_mat[i,3]<-mu2[1]
             param_mat[i,4]<-mu2[2]
-            param_mat[i,5]<-sqrt((sum(mu1-mu2))^2)
+            param_mat[i,5]<-sqrt( sum((mu1-mu2)^2)        )
             param_mat[i,6]<-s1[1,1]
             param_mat[i,7]<-s1[2,2]
             param_mat[i,8]<-s1[1,2]
@@ -56,7 +56,7 @@ for(mu2 in mu){
   }
 }
 
-write.csv(results,'parameter_matrix.csv', row.names = FALSE)
+write.csv(param_mat,'parameter_matrix.csv', row.names = FALSE)
 
 ```
 

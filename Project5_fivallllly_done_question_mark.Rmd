@@ -1,0 +1,119 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(MASS);
+library(clValid);
+library(mixture);
+library(MixGHD);
+library(teigen);
+library(mixsmsn);
+library(meanShiftR);
+```
+
+
+```{r}
+#parameters
+mu1 <- c(0,0)
+mu<- list(c(2.5,2.5),c(1,1),c(.5,0))
+ss<- list(diag(c(1,1)),matrix(c(1,.75,.75,1),2),matrix(c(1,-.75,-.75,1),2),
+          matrix(c(4,4.5,4.5,9),2),matrix(c(4,-4.5,-4.5,9),2) )
+skew<- list(c(0,0),c(1,-1),c(1,1))  
+
+#fewer models just for now. Remove later
+#mu<- list(c(2.5,2.5),c(1,1))
+#ss<- list( diag(c(1,1)), diag(c(2,2))  )
+#skew<- list(c(0,0),c(1,1))  
+
+#results matrix
+results<-matrix(0,nrow = 675, ncol = 17) #setting, ARI1, Dunn1
+colnames(results)<-c('setting','ARI 1','Dunn 1',
+                     'ARI2','Dunn2','BIC2','ARI3','Dunn3','BIC3',
+                     'ARI4', 'nARI4', 'Dunn4', 
+                     'nDunn4','ARI5','Dunn5','ARI6','Dunn6')
+
+N_ARI<-c()
+N_Dunn<-c()
+
+i=0
+for(mu2 in mu){
+  for(s1 in ss){
+    for(s2 in ss){
+      for(skew1 in skew){
+          for (skew2 in skew){
+              
+              ############
+              #Makes data#
+              ############
+              
+              arg1=list(mu=mu1,Sigma=s1,shape=skew1)
+              arg2=list(mu=mu2,Sigma=s2,shape=skew2)
+              args=list(arg1,arg2)
+              stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args,
+                         cluster = TRUE)
+              data<-stuff$y
+              labels <- stuff$cluster
+              #plot(data,col = labels)
+              i=i+1
+              if (i%%25==0){print(i)}
+              results[i,1] <- i 
+              
+              ########
+              #Models#
+              ########
+
+              #meanshift
+              #ARI, nARI, Dunn, nDunn
+              ls<-c()
+              lsd<-c()
+              n_groups_ARI <-c()
+              n_groups_Dunn <-c()
+              for (j in 2:10){
+                model <- meanShift(data, trainData = data, nNeighbors = j,iterations=25)
+                ls<-c(ls,ARI(labels, model$assignment))
+                n_groups_ARI<-c(n_groups_ARI,max(model$assignment))
+                ddd <- dunn(clusters = model$assignment,Data=data)
+                if (ddd != Inf){
+                  lsd<-c(lsd,dunn(clusters = model$assignment,Data=data))
+                } else {
+                    lsd<-c(lsd,0)
+                        }
+              }
+              N_ARI<-c(N_ARI, n_groups_ARI[which.max(ls)])
+              N_Dunn<-c(N_Dunn, n_groups_ARI[which.max(lsd)])
+
+              #print(max(ls))
+              #print(which.max(ls))
+
+        }
+      }
+    }
+  }
+}
+
+```
+
+```{r}
+boxplot(N_ARI,N_Dunn,
+        main='Number of groups',
+        names=c('ARI','Dunn'))
+
+boxplot(N_ARI,N_Dunn,
+        main='Number of groups',
+        names=c('ARI','Dunn'),
+        ylim = c(0,10))
+
+sum(N_ARI == 2)/675
+sum(N_Dunn == 2)/675
+```
+
+
+
+
+
+
+
+
+

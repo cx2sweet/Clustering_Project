@@ -4,7 +4,120 @@ output: html_document
 ---
 
 ```{r}
-params<-read.csv('parameter_matrix.csv')
+params<-read.csv('parameter_matrix.csv',header=TRUE)
 results<-read.csv('results_df.csv')
+
+#how does the dist between means affect the scores
+cor(params[,'dist_between_means'],results[,-1])
+cor(params[,'G1_corr'],results[,-1])
+cor(params[,'G2_corr'],results[,-1])
+
+##############
+#ARI Boxplots#
+##############
+
+boxplot(results[,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],
+        main = 'ARIs for all simulations',
+        names =c('K-means','GMM','t-mix','Meanshift','Ward','PAM'))
+
+boxplot(results[params$G2_mu_x1==2.5,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],
+        main = 'ARIs for far groups')
+
+boxplot(results[params$G2_mu_x1==1,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],
+        main = 'ARIs for medium distance groups',
+        names =c('K-means','GMM','t-mix','Meanshift','Ward','PAM'))
+
+boxplot(results[params$G2_mu_x1==0.5,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],
+        main = 'ARIs for Close Groups',
+        names =c('K-means','GMM','t-mix','Meanshift','Ward','PAM'))
+
+######
+#Skew#
+######
+
+rows = params$G1_skew_x1==0 & params$G1_skew_x2==0 & params$G2_skew_x1==0 & params$G2_skew_x2==0
+boxplot(results[rows,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],main = 'ARIs for no skew')
+
+#Some skew
+rows = params$G1_skew_x1==1 & params$G1_skew_x2==1 & params$G2_skew_x1==1 & params$G2_skew_x2==1
+boxplot(results[rows,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')])
+
+rows = params$G1_skew_x1==1 & params$G1_skew_x2==-1 & params$G2_skew_x1==1 & params$G2_skew_x2==-1
+boxplot(results[rows,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],main = 'ARIs for close groups')
+
+rows = params$G1_skew_x1==0 & params$G1_skew_x2==0 & params$G2_skew_x1==1 & params$G2_skew_x2==1
+boxplot(results[rows,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],
+        main = 'ARI for skew1=(0,0), skew2=(1,1)',
+        names =c('K-means','GMM','t-mix','Meanshift','Ward','PAM'))
+
+
+
+#crossing groups
+rows = params$G1_corr*params$G2_corr < 0
+boxplot(results[rows,c('ARI.1','ARI2','ARI3','ARI4','ARI5','ARI6')],
+        main = 'Crossing Distributions',
+        names =c('K-means','GMM','t-mix','Meanshift','Ward','PAM'))
+
+arg1=list(mu=c(0,0),Sigma=matrix(c(1,.75,.75,1),2),shape=c(0,0))
+arg2=list(mu=c(1,1),Sigma=matrix(c(1,-.75,-.75,1),2),shape=c(0,0))
+args=list(arg1,arg2)
+stuff=rmmix(n=200,p=c(.5,.5),family = 'Skew.normal',arg=args,
+         cluster = TRUE)
+plot(stuff$y,col = stuff$cluster,xlab = 'x1',ylab = 'x2')
+
+############
+#Dunn Index#
+############
+
+boxplot(results[,c('Dunn.1','Dunn2','Dunn3','Dunn4','Dunn5','Dunn6')],
+        main = 'Dunn Index for all simulations',
+        names =c('K-means','GMM','t-mix','Meanshift','Ward','PAM'))
+
+
+#####
+#BIC#
+#####
+a = results$BIC2
+b = abs(results$BIC3)
+boxplot(a,b,
+        main = 'BIC for all simulations',
+        names =c('GMM','t-mix'))
+
+a = results$BIC2[params$G2_mu_x1==2.5]
+b = results$BIC2[params$G2_mu_x1==1]
+c = results$BIC2[params$G2_mu_x1==0.5]
+boxplot(a,b,c,
+        main = 'BIC for GMM based on distance between means',
+        names =c('Far','Medium','Close'))
+
+a = abs(results$BIC3[params$G2_mu_x1==2.5])
+b = abs(results$BIC3[params$G2_mu_x1==1])
+c = abs(results$BIC3[params$G2_mu_x1==0.5])
+boxplot(a,b,c,
+        main = 'BIC for t-mix based on distance between means',
+        names =c('Far','Medium','Close'))
+
+###########################################
+#Correlation between ARI and other metrics#
+###########################################
+
+cor(results[,c('ARI.1','Dunn.1')])
+cor(results[,c('ARI2','Dunn2','BIC2')]) #GMM BIC and ARI are basically independent 
+cor(results[,c('ARI3','Dunn3','BIC3')])#t-mix is the best
+cor(results[,c('ARI4','Dunn4')])
+cor(results[,c('ARI5','Dunn5')])
+cor(results[,c('ARI6','Dunn6')])
+
+
+
+#Meanshift
+#number of groups
+boxplot(results[,c('nARI4','nDunn4')],
+        main = 'Number of Groups for Mean Shift',
+        names=c('n based on ARI','n based on Dunn'))
+
+print(sum(results$nARI4 == results$nDunn4)/675)
+print(sum(results$nARI4 != results$nDunn4)/675)
+
 
 ```
